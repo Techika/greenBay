@@ -12,10 +12,12 @@ export const requestAuthenticatior = (
 ): void => {
   const authHeader = req.headers.authorization;
   const token: string | undefined = authHeader && authHeader.split(' ')[1];
-  if (!token) throw unauthorizedError('Missing token.');
+  if (!token){
+    const err = unauthorizedError('Missing token')
+    return next(new HttpException(err.errorStatus, err.errorMessage.message));
+  }
   try {
-    const verifiedTokenPayload:TokenPayload = verifyToken (token) as TokenPayload;
-    req.user = verifiedTokenPayload;
+    req.user = verifyToken (token) as TokenPayload;
     return next();
   } catch (error) {
     const err = unauthorizedError('Invalid token')

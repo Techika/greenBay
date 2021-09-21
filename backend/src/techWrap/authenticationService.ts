@@ -1,13 +1,12 @@
 import jwt from 'jsonwebtoken';
 import {SECRETKEY} from "../config/config"
-import { LoginResponse } from '../useCases/user/login/model';
 import { User } from '../useCases/user/User';
 
 export function verifyToken (token:string) {
   return jwt.verify(token,SECRETKEY)
 }
 
-export function signToken(user: User): LoginResponse {
+export function signToken(user: User): string {
   const token = jwt.sign(
     {
       userId: user.id,
@@ -18,8 +17,5 @@ export function signToken(user: User): LoginResponse {
       expiresIn: '1h',
     },
   );
-  return {
-    status: 'ok',
-    token,
-  };
+  return token
 }
