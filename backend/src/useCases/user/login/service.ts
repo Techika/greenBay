@@ -26,7 +26,14 @@ const login = async (
   const user = await userQuery.getUserByUsername(username);
   if (!user || !compareSync(password, user.password))
     throw unauthorizedError('Username or password is incorrect.');
-  return signToken(user);
+  const token = signToken(user)
+  const loginResponse:LoginResponse = {
+    status:'ok',
+    username: user.username,
+    balance: user.balance,
+    token,
+  }
+  return loginResponse;
 };
 
 

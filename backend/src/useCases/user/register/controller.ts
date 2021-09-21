@@ -9,9 +9,9 @@ export async function registration(
     next: NextFunction
   ): Promise<void> {
     const { username, password, email, initialFunds } = req.body;
-    console.log('pw',password);
     
-    const registeredUser = await 
+    // const registeredUser = 
+    await 
       register( username, password, email, initialFunds )
       .catch(error => {
         next(

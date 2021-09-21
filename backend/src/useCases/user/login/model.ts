@@ -6,5 +6,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   status: string;
   token?: string;
-  message?: string;
+  balance?:number;
+  message?:string;
+  username?:string;
 }
