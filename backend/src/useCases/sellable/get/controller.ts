@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpException } from '../../../techWrap/errorService';
 import { SellableGetOptions } from './model';
 import { getSellables } from './service';
 
@@ -8,8 +7,6 @@ export async function gettingSellables(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  console.log('asdas');
-
   const queryObject: SellableGetOptions = {};
   switch (req.params.what) {
     case 'all': {
@@ -31,7 +28,7 @@ export async function gettingSellables(
       break;
   }
   const data = await getSellables(queryObject).catch(error => {
-    next(new HttpException(error.errorStatus, error.errorMessage));
+    return next(error);
   });
   if (data) {
     res.status(200).json(data);

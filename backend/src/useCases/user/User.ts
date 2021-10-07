@@ -1,6 +1,5 @@
-import { Url } from 'url';
 import { dbService } from '../../techWrap/dbService';
-import { internalServerError } from '../../techWrap/errorService';
+import { apiError, HttpStatus } from '../../techWrap/errorService';
 import { Sellable } from '../sellable/Sellable';
 
 export interface User {
@@ -65,7 +64,10 @@ export const userQuery = {
     ) as unknown) as SqlResultUser);
 
     if (!dbResult) {
-      throw internalServerError('Could not insert user!');
+      throw apiError(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Could not insert user!'
+      );
     }
 
     return dbResult;

@@ -1,7 +1,7 @@
 import { SellRequest } from './sell/model';
 import * as mysql from 'mysql';
 import { dbService } from '../../techWrap/dbService';
-import { internalServerError } from '../../techWrap/errorService';
+import { apiError, HttpStatus } from '../../techWrap/errorService';
 import { currentTimeStamp } from '../../techWrap/timeService';
 import { SellableGetOptions, SellableGetResults } from './get/model';
 
@@ -67,7 +67,10 @@ export const sellableQuery = {
       ]
     ) as unknown);
     if (!dbResult) {
-      throw internalServerError('Could not create sellable item!');
+      throw apiError(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Could not create sellable item!'
+      );
     }
     return dbResult;
   },
@@ -85,7 +88,10 @@ export const sellableQuery = {
       []
     ) as unknown) as SellableGetResults);
     if (!dbResult) {
-      throw internalServerError('Could not fetch Sellable items!');
+      throw apiError(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Could not fetch Sellable items!'
+      );
     }
     return dbResult;
   },
