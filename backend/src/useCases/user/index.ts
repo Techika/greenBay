@@ -1,18 +1,18 @@
-import { loginAttempt } from "./login/controller"
-import { userAuthentication } from "./login/service"
-import { registration } from "./register/controller"
-import { register } from "./register/service"
-import { userQuery } from "./User"
+import { loginController } from './login/controller';
+import { userAuthentication } from './login/service';
+import { registrationController } from './register/controller';
+import { registrationService } from './register/service';
+import { userQuery } from './User';
 
-export const userController ={
-  registration,
-  loginAttempt
-}
+export const userController = {
+  registrationController,
+  loginController,
+};
 export const userService = {
-  register,
-  userAuthentication
-}
+  registrationService,
+  userAuthentication,
+};
 
-export const userModel ={
-  User: userQuery
-}
+export const userModel = {
+  User: userQuery,
+};

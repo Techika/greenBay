@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import * as User from '../User';
-import { register } from './service';
+import { registrationService } from './service';
 
-export async function registration(
+export async function registrationController(
   req: Request<User.RegistrationRequest>,
   res: Response<User.RegistrationResponse>,
   next: NextFunction
@@ -10,8 +10,11 @@ export async function registration(
   const { username, password, email, initialFunds } = req.body;
 
   // const registeredUser =
-  await register(username, password, email, initialFunds).catch(error =>
-    next(error)
-  );
+  await registrationService(
+    username,
+    password,
+    email,
+    initialFunds
+  ).catch(error => next(error));
   res.status(201).json({ result: 'Registration successful!' });
 }

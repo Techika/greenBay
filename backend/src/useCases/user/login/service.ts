@@ -19,7 +19,7 @@ function preValidate(username: string, password: string) {
   }
 }
 
-const login = async (
+const loginService = async (
   username: string,
   password: string
 ): Promise<LoginResponse> => {
@@ -41,6 +41,6 @@ const login = async (
 };
 
 export const userAuthentication = {
-  login,
+  loginService,
   preValidate,
 };

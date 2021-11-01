@@ -1,9 +1,12 @@
 import jwt from 'jsonwebtoken';
-import {SECRETKEY} from "../config/config"
-import { User } from '../useCases/user/User';
+import { TokenPayload } from '../api/RequestModel';
+import { SECRETKEY } from '../config/config';
+import { User, userQuery } from '../useCases/user/User';
 
-export function verifyToken (token:string) {
-  return jwt.verify(token,SECRETKEY)
+export async function verifyToken(token: string): Promise<User> {
+  const verifiedToken = jwt.verify(token, SECRETKEY) as TokenPayload;
+  const user = await userQuery.getUserByUsername(verifiedToken.userName);
+  return user;
 }
 
 export function signToken(user: User): string {
@@ -15,7 +18,7 @@ export function signToken(user: User): string {
     SECRETKEY,
     {
       expiresIn: '1h',
-    },
+    }
   );
-  return token
+  return token;
 }

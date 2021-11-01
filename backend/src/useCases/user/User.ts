@@ -10,6 +10,7 @@ export interface User {
   status: 'unconfirmed' | 'confirmed' | 'verified';
   state: 'open' | 'locked' | 'closed';
   balance: number;
+  locked_balance: number;
   sellables: Sellable[];
   bids: Sellable[];
   purchases: Sellable[];

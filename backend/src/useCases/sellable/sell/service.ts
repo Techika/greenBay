@@ -40,7 +40,7 @@ function preValidate(req: SellRequest) {
   }
 }
 
-const sell = async (req: SellRequest): Promise<SellResponse> => {
+const sellService = async (req: SellRequest): Promise<SellResponse> => {
   preValidate(req);
   const { insertId: id } = (await sellableQuery.postSellable(req)) as OkPacket;
   const sellable: Sellable = (await sellableQuery.getSellables({ id }))
@@ -53,4 +53,4 @@ const sell = async (req: SellRequest): Promise<SellResponse> => {
   return sellResponse;
 };
 
-export default sell;
+export default sellService;

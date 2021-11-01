@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { SellableGetOptions } from './model';
-import { getSellables } from './service';
+import { sellableGetService } from './service';
 
-export async function gettingSellables(
+export async function sellableGetController(
   req: Request,
   res: Response,
   next: NextFunction
@@ -13,7 +13,7 @@ export async function gettingSellables(
       break;
     }
     case 'mine': {
-      queryObject.seller_id = Number(req.user.userId);
+      queryObject.seller_id = Number(req.user.id);
       break;
     }
     case 'owner': {
@@ -27,7 +27,7 @@ export async function gettingSellables(
     default:
       break;
   }
-  const data = await getSellables(queryObject).catch(error => {
+  const data = await sellableGetService(queryObject).catch(error => {
     return next(error);
   });
   if (data) {

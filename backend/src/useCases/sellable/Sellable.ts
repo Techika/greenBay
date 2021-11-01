@@ -4,6 +4,11 @@ import { dbService } from '../../techWrap/dbService';
 import { apiError, HttpStatus } from '../../techWrap/errorService';
 import { currentTimeStamp } from '../../techWrap/timeService';
 import { SellableGetOptions, SellableGetResults } from './get/model';
+import {
+  SellableBidParams,
+  SellableBidResults,
+  SellableBuyParams,
+} from './bid/model';
 
 export interface Sellable {
   id: string;
@@ -17,6 +22,7 @@ export interface Sellable {
   photo_url?: string;
   min_price?: number;
   max_price?: number;
+  last_bid_amount?: number;
   sell_price?: number;
   posted_until?: number;
   sold_at?: number;
@@ -27,11 +33,12 @@ export interface Sellable {
 
 export interface Bid {
   id: string;
-  bidderId: string;
+  bidder_id: string;
   bidderNick: string;
-  sellableId: string;
+  sellable_id: string;
   sellableTitle: string;
-  bidAt: number;
+  bid_amount: number;
+  bid_at: number;
 }
 
 export const sellableQuery = {
@@ -84,13 +91,107 @@ export const sellableQuery = {
         ${req.id ? `AND id = ${mysql.escape(req.id)}` : ''}
         ${req.seller_id ? `AND seller_id = ${mysql.escape(req.seller_id)}` : ''}
         ${!req.seller_id && !req.id ? `AND status = "open"` : ''}
-        ;`,
+      ;`,
       []
     ) as unknown) as SellableGetResults);
     if (!dbResult) {
       throw apiError(
         HttpStatus.INTERNAL_SERVER_ERROR,
         'Could not fetch Sellable items!'
+      );
+    }
+    return dbResult;
+  },
+  bidSellable: async (req: SellableBidParams): Promise<SellableBidResults> => {
+    const dbResult = await ((dbService.query(
+      `
+        SET @var_rollback BOOL DEFAULT 0;
+        SET CONTINUE HANDLER FOR SQLEXCEPTION SET @var_rollback = 1;
+        START TRANSACTION;
+      
+      UPDATE sellable 
+      SET 
+        last_bid_amount = ?, 
+        last_bid_at = ?,
+        last_bidder_id = ? 
+      WHERE (id = ?)
+      ;
+      INSERT INTO bid 
+        (bidder_id, sellable_id, bid_at, bid_amount) 
+      VALUES 
+        (?)
+      ;
+      UPDATE user 
+      SET 
+        balance = ?, 
+        locked_balance = ?
+      WHERE (id = ?)
+      ;
+      IF _rollback THEN
+        ROLLBACK;
+      ELSE
+        COMMIT;
+      END IF;
+      `,
+      [
+        req.bid_amount,
+        req.bid_at,
+        req.bidder_id,
+        req.sellable_id,
+        [req.bidder_id, req.sellable_id, req.bid_at, req.bid_amount],
+        req.bidder_balance,
+        req.bidder_locked_balance,
+        req.bidder_id,
+      ]
+    ) as unknown) as SellableBidResults);
+    if (!dbResult) {
+      throw apiError(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Could not fetch database response!'
+      );
+    }
+    return dbResult;
+  },
+  buySellable: async (req: SellableBuyParams): Promise<SellableBidResults> => {
+    const dbResult = await ((dbService.query(
+      `
+        SET @var_rollback BOOL DEFAULT 0;
+        SET CONTINUE HANDLER FOR SQLEXCEPTION SET @var_rollback = 1;
+        START TRANSACTION;
+      
+      UPDATE sellable 
+      SET 
+        sell_price = ?, 
+        sold_at = ?,
+        buyer_id = ?,
+        status = 'sold'
+      WHERE (id = ?)
+      ;
+      UPDATE user 
+      SET 
+        locked_balance = ?
+      WHERE (id = ?)
+      ;
+      IF _rollback THEN
+        ROLLBACK;
+      ELSE
+        COMMIT;
+      END IF;
+      ;
+      `,
+      [
+        req.sell_price,
+        req.sold_at,
+        req.buyer_id,
+        req.sellable_id,
+        req.bidder_locked_balance,
+        req.buyer_id,
+      ]
+    ) as unknown) as SellableBidResults);
+    if (!dbResult) {
+      throw apiError(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Could not fetch database response!'
       );
     }
     return dbResult;

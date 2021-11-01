@@ -3,11 +3,11 @@ import { verifyToken } from '../../techWrap/authenticationService';
 import { TokenPayload } from '../RequestModel';
 import { apiError, HttpStatus } from '../../techWrap/errorService';
 
-export const requestAuthenticator = (
+export const requestAuthenticator = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers.authorization;
   const token: string | undefined = authHeader && authHeader.split(' ')[1];
 
@@ -16,8 +16,7 @@ export const requestAuthenticator = (
   }
 
   try {
-    const user = verifyToken(token) as TokenPayload;
-    req.user = user;
+    req.user = await verifyToken(token);
     return next();
   } catch (error) {
     return next(apiError(HttpStatus.UNAUTHORIZED, 'Invalid token'));

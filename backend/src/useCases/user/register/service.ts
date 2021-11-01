@@ -7,7 +7,7 @@ import {
 import { userAuthentication } from '../login/service';
 import { userQuery } from '../User';
 
-export async function register(
+export async function registrationService(
   username: string,
   password: string,
   email: string,
