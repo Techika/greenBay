@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `greenbay`.`user` (
   `status` VARCHAR(45) NOT NULL,
   `state` VARCHAR(45) NOT NULL,
   `balance` INT UNSIGNED NOT NULL DEFAULT 0,
+  `locked_balance` INT UNSIGNED NOT NULL DEFAULT 0 AFTER,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE)
 ENGINE = InnoDB;
@@ -33,13 +34,16 @@ CREATE TABLE IF NOT EXISTS `greenbay`.`sellable` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `min_price` INT UNSIGNED NOT NULL,
   `max_price` INT UNSIGNED NULL,
+  `last_bid_amount` INT UNSIGNED NULL,
   `sell_price` INT UNSIGNED NULL,
   `posted_at` INT UNSIGNED NOT NULL,
   `posted_until` INT UNSIGNED NULL,
+  `last_bid_at` INT UNSIGNED NULL,
   `sold_at` INT UNSIGNED NULL,
   `price_type` VARCHAR(45) NOT NULL,
   `status` VARCHAR(45) NOT NULL,
   `seller_id` INT UNSIGNED NOT NULL,
+  `last_bidder_id` INT UNSIGNED NULL,
   `buyer_id` INT UNSIGNED NULL,
   `title` VARCHAR(45) NOT NULL,
   `description` VARCHAR(255) NOT NULL,
@@ -47,6 +51,7 @@ CREATE TABLE IF NOT EXISTS `greenbay`.`sellable` (
   PRIMARY KEY (`id`, `seller_id`),
   INDEX `fk_sellable_user_idx` (`seller_id` ASC) VISIBLE,
   INDEX `fk_sellable_user1_idx` (`buyer_id` ASC) VISIBLE,
+  INDEX `fk_sellable_user2_idx` (`last_bidder_id` ASC) VISIBLE,
   CONSTRAINT `fk_sellable_user`
     FOREIGN KEY (`seller_id`)
     REFERENCES `greenbay`.`user` (`id`)
@@ -56,7 +61,13 @@ CREATE TABLE IF NOT EXISTS `greenbay`.`sellable` (
     FOREIGN KEY (`buyer_id`)
     REFERENCES `greenbay`.`user` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+  ADD CONSTRAINT `fk_sellable_user2`
+    FOREIGN KEY (`last_bidder_id`)
+    REFERENCES `greenbay`.`user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    )
 ENGINE = InnoDB;
 
 
@@ -68,6 +79,7 @@ CREATE TABLE IF NOT EXISTS `greenbay`.`bid` (
   `bidder_id` INT UNSIGNED NOT NULL,
   `sellable_id` INT UNSIGNED NOT NULL,
   `bid_at` INT UNSIGNED NOT NULL,
+  `bid_amount` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`, `bidder_id`, `sellable_id`),
   INDEX `sellable_idx` (`sellable_id` ASC) VISIBLE,
   INDEX `bidder_idx` (`bidder_id` ASC) VISIBLE,
