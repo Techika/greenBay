@@ -9,15 +9,15 @@ export function bidInputValidation(
   sellableID: number,
   bidAmount: number
 ): boolean {
-  if (!Number.isInteger(bidAmount) || bidAmount <= 0) {
+  if (!Number.isInteger(Number(bidAmount)) || Number(bidAmount) <= 0) {
     throw apiError(
       HttpStatus.BAD_REQUEST,
-      'Bad request! (bidAmount not a positive integer)'
+      `Bad request! (bidAmount $${bidAmount} is not a positive integer)`
     );
   } else if (bidder.balance <= bidAmount) {
     throw apiError(
       HttpStatus.BAD_REQUEST,
-      'Your balance is below the selected bid amount, please upload more funds and retry!'
+      `Your balance ($${bidder.balance}) is below the selected bid amount ($${bidAmount}), please upload more funds and retry!`
     );
   } else {
     return true;
@@ -45,17 +45,17 @@ export function bidPreValidation(
   } else if (sellable.price_type === 'fixed' && amount < sellable.max_price!) {
     throw apiError(
       HttpStatus.NOT_ACCEPTABLE,
-      `The targeted sellable has a fixed price of ${sellable.max_price}USD!`
+      `The targeted sellable has a fixed price of $${sellable.max_price}! (your bid was: $${amount})`
     );
   } else if (sellable.min_price && sellable.min_price > amount) {
     throw apiError(
       HttpStatus.NOT_ACCEPTABLE,
-      `The bid amount is lower than the sellable's minimum bid mount, submit a higher bid!`
+      `The bid amount ($${amount}) is lower than the sellable's minimum bid mount ($${sellable.min_price}), submit a higher bid!`
     );
   } else if (sellable.last_bid_amount && sellable.last_bid_amount >= amount) {
     throw apiError(
       HttpStatus.NOT_ACCEPTABLE,
-      `The bid amount is not higher than the last registered bid, submit a higher bid!`
+      `The bid amount ($${amount}) is not higher than the last registered bid ($${sellable.last_bid_amount}), submit a higher bid!`
     );
   } else {
     return true;

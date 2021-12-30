@@ -1,11 +1,10 @@
-import { dbService } from '../../../techWrap/dbService';
+import { dbService, dbTransaction } from '../../../techWrap/dbService';
 import { apiError, HttpStatus } from '../../../techWrap/errorService';
 import { currentTimeStamp } from '../../../techWrap/timeService';
 import { User, userQuery } from '../../user/User';
 import { sellableQuery } from '../Sellable';
 import { BidResponse } from './model';
 import { bidInputValidation, bidPreValidation } from './validation';
-import mysql from 'mysql';
 
 export const bidService = async (
   bidder: User,
@@ -15,54 +14,48 @@ export const bidService = async (
   if (bidInputValidation(bidder, sellable_id, bid_amount)) {
     const sellable = (await sellableQuery.getSellables({ id: sellable_id }))
       .results[0];
+    // console.log(sellable);
     if (bidPreValidation(bidder, bid_amount, sellable)) {
       const timeStamp = currentTimeStamp();
       if (sellable.max_price && bid_amount >= sellable.max_price) {
-        //When bid meets fixed price
+        // in case the Bid results in a fixed Buy
         bid_amount = sellable.max_price;
-        // dbService.beginTransaction()
-        try {
-          await
-        } catch (error) {
-          
-        }
         const bidResponse = await sellableQuery.bidSellable({
           bid_amount,
           bid_at: timeStamp,
           bidder_id: bidder.id,
           sellable_id,
-          bidder_balance: bidder.balance - bid_amount,
-          bidder_locked_balance: bidder.locked_balance + bid_amount,
+          last_bidder_id: sellable.last_bidder_id,
+          last_bid_amount: sellable.last_bid_amount,
         });
-        console.log(bidResponse);
+        // console.log(bidResponse);
         const sellResponse = await sellableQuery.buySellable({
           sell_price: sellable.max_price,
           sold_at: timeStamp,
           buyer_id: bidder.id,
           sellable_id,
-          bidder_locked_balance: bidder.locked_balance,
         });
-        console.log(sellResponse);
-        return { response: 'testOK' };
+        // console.log(sellResponse);
       } else if (!sellable.max_price || sellable.max_price > bid_amount) {
-        //When bid is without or below fixed price
+        // in case a normal Bid occurs, and bidding remains open
         const bidResponse = await sellableQuery.bidSellable({
           bid_amount,
           bid_at: timeStamp,
           bidder_id: bidder.id,
           sellable_id,
-          bidder_balance: bidder.balance - bid_amount,
-          bidder_locked_balance: bidder.locked_balance + bid_amount,
+          last_bidder_id: sellable.last_bidder_id,
+          last_bid_amount: sellable.last_bid_amount,
         });
-        console.log(bidResponse);
-        return { response: 'testOK2' };
       }
-    }
-  }
-  return { response: 'testOK3' };
+      return (await sellableQuery.getSellables({ id: sellable_id })).results[0];
+    } // if prevalidation fails, but no error thrown yet
+    throw apiError(
+      HttpStatus.NOT_ACCEPTABLE,
+      `Bid bidPreValidation ran into an undefined problem, please contact an Admin`
+    );
+  } // if inputValidation fails, but no error thrown yet
+  throw apiError(
+    HttpStatus.NOT_ACCEPTABLE,
+    `Bid bidInputValidation ran into an undefined problem, please contact an Admin`
+  );
 };
-
-// export const bidValidation = async ( bidderUsername:string, postID:number, amunt:number):Promise<boolean> =>{
-//   const bidder = await userQuery.getUserByUsername(bidderUsername);
-
-// }

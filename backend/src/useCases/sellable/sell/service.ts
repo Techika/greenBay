@@ -1,8 +1,9 @@
-import { OkPacket } from 'mysql';
+// import { OkPacket } from 'mysql2';
 import { validURL } from '../../../techWrap/typeService';
 import { apiError, HttpStatus } from '../../../techWrap/errorService';
 import { Sellable, sellableQuery } from '../Sellable';
 import { SellRequest, SellResponse } from './model';
+import { OkResponse } from '../../../techWrap/dbService';
 
 function preValidate(req: SellRequest) {
   if (
@@ -22,7 +23,7 @@ function preValidate(req: SellRequest) {
       HttpStatus.BAD_REQUEST,
       `Unable to create item! Missing parameters: ${missing.join(', ')}`
     );
-  } else if (req.minPrice < 0 || !Number.isInteger(req.minPrice)) {
+  } else if (req.minPrice < 0 || !Number.isInteger(Number(req.minPrice))) {
     throw apiError(
       HttpStatus.BAD_REQUEST,
       'Unable to create item! Only positive whole number prices allowed.'
@@ -42,7 +43,10 @@ function preValidate(req: SellRequest) {
 
 const sellService = async (req: SellRequest): Promise<SellResponse> => {
   preValidate(req);
-  const { insertId: id } = (await sellableQuery.postSellable(req)) as OkPacket;
+  const { insertId: id } = ((await sellableQuery.postSellable(
+    req
+  )) as OkResponse).results;
+  console.log('id', id);
   const sellable: Sellable = (await sellableQuery.getSellables({ id }))
     .results[0];
   const sellResponse: SellResponse = {

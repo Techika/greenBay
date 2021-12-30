@@ -23,8 +23,11 @@ const loginService = async (
   username: string,
   password: string
 ): Promise<LoginResponse> => {
+  console.log('Begin LoginSevice');
   preValidate(username, password);
+  console.log('post Prevalidation');
   const user = await userQuery.getUserByUsername(username);
+  console.log('USer', user);
   if (!user || !compareSync(password, user.password))
     throw apiError(
       HttpStatus.UNAUTHORIZED,
